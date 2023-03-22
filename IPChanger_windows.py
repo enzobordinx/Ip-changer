@@ -3,6 +3,15 @@ import tkinter as tk
 import win32api, sys, os
 from tkinter import messagebox
 
+def get_current_network_info():
+    c = wmi.WMI()
+    for interface in c.Win32_NetworkAdapterConfiguration(IPEnabled=True):
+        ip_address = next((ip for ip in interface.IPAddress if len(ip) < 15), "")
+        subnet_mask = interface.IPSubnet[0] if interface.IPSubnet else ""
+        gateway = interface.DefaultIPGateway[0] if interface.DefaultIPGateway else ""
+        return ip_address, subnet_mask, gateway
+    return "", "", ""
+
 def DhcpIpChanger():
     nic_configs = wmi.WMI().Win32_NetworkAdapterConfiguration(IPEnabled=True)
     # First network adapto  r
@@ -95,12 +104,13 @@ for interface in c.Win32_NetworkAdapterConfiguration(IPEnabled=1):
 tk.Label(text="\nSubnetmask").pack()
 entrySubnet = tk.Entry(top)
 entrySubnet.pack()
-entrySubnet.insert(0, "255.255.255.0")
+current_ip, current_subnet_mask, current_gateway = get_current_network_info()
+entrySubnet.insert(0, current_subnet_mask)
 # gateway entry
 tk.Label(text="\nGateway").pack()
 entryGateway = tk.Entry(top)
 entryGateway.pack()
-entryGateway.insert(0, "192.168.5.2")
+entryGateway.insert(0, current_gateway)
 # dns entry
 tk.Label(text="\nDNS").pack()
 entryDNS = tk.Entry(top)
